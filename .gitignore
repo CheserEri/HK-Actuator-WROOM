@@ -1,4 +1,8 @@
 .pio
 .pio-core
+.run
+control_panel/.run
+control_panel/.dart_tool
+control_panel/build
 .vscode/c_cpp_properties.json
 .vscode/launch.json

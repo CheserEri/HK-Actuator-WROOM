@@ -1,43 +1,30 @@
 #include <Arduino.h>
-#include <ESP32Servo.h>
+
+#include "ActuatorController.h"
+#include "AppConfig.h"
+#include "LanControlService.h"
 
 namespace {
-constexpr uint32_t kSerialBaudRate = 115200;
-constexpr int kServoPin = 5;
-constexpr int kMinPulseWidthUs = 500;
-constexpr int kMaxPulseWidthUs = 2400;
-constexpr int kStartAngle = 0;
-constexpr int kTargetAngle = 90;
-constexpr uint32_t kPauseMs = 1000;
 
-Servo servo_motor;
+app::ActuatorController actuator(app::kDeviceConfig);
+app::LanControlService control_service(app::kWifiConfig, app::kDeviceConfig, actuator);
 
-void moveServoTo(int angle) {
-  servo_motor.write(angle);
-  Serial.printf("Servo moved to %d degrees\n", angle);
-}
 }  // namespace
 
 void setup() {
-  Serial.begin(kSerialBaudRate);
+  Serial.begin(app::kSerialBaudRate);
   delay(1000);
 
-  servo_motor.setPeriodHertz(50);
-  servo_motor.attach(kServoPin, kMinPulseWidthUs, kMaxPulseWidthUs);
-
   Serial.println();
-  Serial.println("SG90 servo sweep test started");
-  Serial.println("Signal pin: GPIO5 (D5)");
-  Serial.println("Servo will move between 0 and 90 degrees.");
+  Serial.println("HK actuator firmware booting");
+  Serial.printf("Device ID: %s\n", app::kDeviceConfig.device_id);
 
-  moveServoTo(kStartAngle);
-  delay(kPauseMs);
+  actuator.begin();
+  control_service.begin();
 }
 
 void loop() {
-  moveServoTo(kTargetAngle);
-  delay(kPauseMs);
-
-  moveServoTo(kStartAngle);
-  delay(kPauseMs);
+  actuator.update();
+  control_service.update();
+  delay(5);
 }
